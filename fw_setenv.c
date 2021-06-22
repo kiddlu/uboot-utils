@@ -41,7 +41,7 @@
 
 #define	CMD_PRINTENV	"fw_printenv"
 #define	CMD_SETENV	"fw_setenv"
-#define CONFIG_FILE     "fw.conf"
+#define CONFIG_FILE     "/etc/uboot.fw.conf"
 
 #define min(x, y) ({				\
 	typeof(x) _min1 = (x);			\
