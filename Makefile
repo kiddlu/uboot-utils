@@ -1,30 +1,34 @@
-############################################################
-# Makefile for building build small and static utilities
-# - mips32 should run fine on big endian based mips routers
-#
-# /TR 2016-03-05
-############################################################
+CPUS=$(shell cat /proc/cpuinfo | grep "processor" | wc -l)
+PWD=$(shell pwd)
+BUILD_DIR=$(PWD)/build
+MAKE_OPT=
 
-# replace with your preferred cross compiler
-CC	= mips-gcc
-STRIP	= mips-strip
+define shcmd-makepre
+	mkdir -p $(BUILD_DIR)
+	cd $(BUILD_DIR) && cmake ..
+endef
 
-# replace with your cflags
-CFLAGS	= -W -Wall -Os -pipe -march=mips32
-LDFLAGS	= -static
+define shcmd-make
+	@cd $(BUILD_DIR) && make -j$(CPUS) $(MAKE_OPT) | grep -v "^make\[[0-9]\]:"
+endef
 
-all:	clean flashwrite fw_setenv fw_printenv
+define shcmd-makeclean
+	@cd $(BUILD_DIR) && make clean
+endef
 
-flashwrite:
-	$(CC) $(CFLAGS) $(LDFLAGS) -o flashwrite flashwrite.c
-	$(STRIP) -R .note -R .comment flashwrite
+define shcmd-makerm
+	rm -rf $(BUILD_DIR) 
+endef
 
-fw_setenv:
-	$(CC) $(CFLAGS) $(LDFLAGS) -o fw_setenv crc32.c fw_setenv.c
-	$(STRIP) -R .note -R .comment fw_setenv
-
-fw_printenv: fw_setenv
-	ln -s fw_setenv fw_printenv
+.PHONY: all clean rm pre
+all: pre 
+	$(call shcmd-make)
 
 clean:
-	rm -f flashwrite fw_setenv fw_printenv
+	$(call shcmd-makeclean)
+
+rm:
+	$(call shcmd-makerm)
+
+pre:
+	$(call shcmd-makepre)
